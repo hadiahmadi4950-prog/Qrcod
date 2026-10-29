@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>تولیدکننده پیشرفته کد QR</title>
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="color-scheme" content="light">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="کد QR">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="./icon-192.png">
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .ic{width:1em;height:1em;display:inline-block;vertical-align:-0.125em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+        html{background:#f6f8fd;color-scheme:light}
+        textarea,select,input[type="text"]{background-color:#fff!important;color:#1e293b!important;color-scheme:light;-webkit-text-fill-color:#1e293b}
+        textarea::placeholder{color:#94a3b8!important;-webkit-text-fill-color:#94a3b8}
+        .mini canvas,.mini img{max-width:100%;height:auto!important;border-radius:.5rem}
+        body{padding-top:max(1rem,env(safe-area-inset-top))!important;padding-bottom:max(1rem,env(safe-area-inset-bottom))!important}
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #f6f8fd 0%, #e3e8f8 100%);
+            min-height: 100vh;
+        }
+
+        /* Custom Color Picker Input Styling */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 100%;
+            height: 42px;
+            border-radius: 0.75rem;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 2px;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.6rem;
+        }
+
+        /* Glassmorphism Card Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* QR Code Container Styling */
+        #qrcode img, #qrcode canvas {
+            margin: 0 auto;
+            border-radius: 0.75rem;
+            max-width: 100%;
+            height: auto !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .qr-updating {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        /* Notification Toast Animation */
+        @keyframes slideUp {
+            from { transform: translateY(100%) translateX(-50%); opacity: 0; }
+            to { transform: translateY(0) translateX(-50%); opacity: 1; }
+        }
+        .toast-animate {
+            animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col justify-between p-4 md:p-8 min-h-screen">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-qrcode" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/></symbol><symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></symbol><symbol id="i-shield-halved" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-pen-to-square" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a1 1 0 0 1 3 3l-9 9a2 2 0 0 1-.85.5l-2.87.84a.5.5 0 0 1-.62-.62l.84-2.87a2 2 0 0 1 .5-.85z"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol><symbol id="i-share-nodes" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol><symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></symbol><symbol id="i-circle-exclamation" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol><symbol id="i-circle-xmark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></symbol></svg>
+
+    
+    <!-- Top compare bar -->
+    <div class="sticky top-2 z-40 max-w-4xl w-full mx-auto mb-4 glass-card rounded-2xl shadow-lg p-3">
+        <div class="grid grid-cols-2 gap-3 text-center">
+            <div>
+                <div class="text-[11px] font-bold text-slate-500 mb-1.5">پایه (بدون تغییر)</div>
+                <div class="bg-white rounded-xl p-2 flex items-center justify-center h-36"><div id="top-base" class="mini flex items-center justify-center w-full h-full"></div></div>
+            </div>
+            <div>
+                <div class="text-[11px] font-bold text-indigo-600 mb-1.5">فعلی (با تنظیمات شما)</div>
+                <div class="bg-white rounded-xl p-2 flex items-center justify-center h-36"><div id="top-live" class="mini flex items-center justify-center w-full h-full"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="max-w-4xl w-full mx-auto text-center mb-6">
+        <div class="inline-flex items-center justify-center p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200 mb-3">
+            <svg class="ic text-3xl" aria-hidden="true"><use href="#i-qrcode"/></svg>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">ساخت سریع و هوشمند کد QR</h1>
+        <p class="text-slate-500 text-sm md:text-base mt-1">متن یا لینک خود را وارد کرده و کد QR خود را شخصی‌سازی کنید</p>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Form Controls (Left Column on LG, Full width on Mobile) -->
+        <section class="lg:col-span-7 glass-card p-5 md:p-7 rounded-3xl shadow-xl space-y-6">
+            
+            <!-- Text / URL Input -->
+            <div>
+                <label for="qr-text" class="block text-sm font-bold text-slate-700 mb-2 flex items-center justify-between">
+                    <span><svg class="ic text-indigo-500 ml-2" aria-hidden="true"><use href="#i-link"/></svg>محتوا (متن یا لینک URL)</span>
+                    <span id="char-count" class="text-xs font-normal text-slate-400">۰ کاراکتر</span>
+                </label>
+                <div class="relative">
+                    <textarea 
+                        id="qr-text" 
+                        rows="3" 
+                        class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all duration-200 text-slate-800 placeholder-slate-400 resize-none shadow-sm"
+                        placeholder="https://example.com یا متن دلخواه خود را بنویسید..."
+                    >https://google.com</textarea>
+                    <button 
+                        id="clear-btn" 
+                        type="button" 
+                        class="absolute left-3 bottom-3 text-slate-400 hover:text-rose-500 p-1 transition-colors rounded-lg"
+                        title="پاک‌کردن متن"
+                        aria-label="پاک‌کردن متن"
+                    >
+                        <svg class="ic text-lg" aria-hidden="true"><use href="#i-circle-xmark"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 my-4"></div>
+
+            <!-- Color Options -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center">
+                    <svg class="ic text-indigo-500 ml-2" aria-hidden="true"><use href="#i-palette"/></svg>رنگ‌بندی کد QR
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Foreground Color -->
+                    <div>
+                        <label for="fg-color" class="block text-xs font-medium text-slate-600 mb-1.5">رنگ کد (پیش‌زمینه)</label>
+                        <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                            <input type="color" id="fg-color" value="#0f172a" aria-label="رنگ کد پیش‌زمینه">
+                            <span id="fg-color-hex" class="text-xs font-mono font-semibold text-slate-600 uppercase pl-2">#0F172A</span>
+                        </div>
+                    </div>
+                    <!-- Background Color -->
+                    <div>
+                        <label for="bg-color" class="block text-xs font-medium text-slate-600 mb-1.5">رنگ زمینه (پس‌زمینه)</label>
+                        <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                            <input type="color" id="bg-color" value="#ffffff" aria-label="رنگ زمینه پس‌زمینه">
+                            <span id="bg-color-hex" class="text-xs font-mono font-semibold text-slate-600 uppercase pl-2">#FFFFFF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Size Slider -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label for="qr-size" class="text-sm font-bold text-slate-700 flex items-center">
+                        <svg class="ic text-indigo-500 ml-2" aria-hidden="true"><use href="#i-expand"/></svg>ابعاد تصویر
+                    </label>
+                    <span id="size-value" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">256 x 256 پیکسل</span>
+                </div>
+                <input 
+                    type="range" 
+                    id="qr-size" 
+                    min="128" 
+                    max="512" 
+                    step="16" 
+                    value="256"
+                    class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                    aria-label="تنظیم اندازه کد QR"
+                >
+                <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+                    <span>کوچک (128px)</span>
+                    <span>متوسط (256px)</span>
+                    <span>بزرگ (512px)</span>
+                </div>
+            </div>
+
+            <!-- Error Correction Level -->
+            <div>
+                <label for="correct-level" class="block text-sm font-bold text-slate-700 mb-2 flex items-center">
+                    <svg class="ic text-indigo-500 ml-2" aria-hidden="true"><use href="#i-shield-halved"/></svg>سطح تصحیح خطا (Error Correction)
+                </label>
+                <select 
+                    id="correct-level" 
+                    class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 font-medium focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all duration-200 shadow-sm cursor-pointer"
+                >
+                    <option value="L">سطح L (پایین ~ ٪۷ بازیابی - سبک‌تر)</option>
+                    <option value="M" selected>سطح M (متوسط ~ ٪۱۵ بازیابی - استاندارد)</option>
+                    <option value="Q">سطح Q (بالا ~ ٪۲۵ بازیابی - مناسب چاپ)</option>
+                    <option value="H">سطح H (خیلی بالا ~ ٪۳۰ بازیابی - حداکثر ایمنی)</option>
+                </select>
+                <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                    سطح بالاتر باعث می‌شود در صورت آسیب دیدن یا کثیف شدن کد، اسکن آن همچنان ممکن باشد.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- Preview and Actions (Right Column on LG) -->
+        <section class="lg:col-span-5 glass-card p-5 md:p-7 rounded-3xl shadow-xl flex flex-col items-center justify-between text-center sticky top-6">
+            
+            <div class="w-full">
+                <h2 class="text-sm font-bold text-slate-700 mb-4 flex items-center justify-center">
+                    <svg class="ic text-indigo-500 ml-2" aria-hidden="true"><use href="#i-eye"/></svg>پیش‌نمایش زنده
+                </h2>
+
+                <!-- QR Display Container -->
+                <div class="bg-slate-100/70 border-2 border-dashed border-slate-200 rounded-2xl p-6 min-h-[280px] flex items-center justify-center relative overflow-hidden mb-6">
+                    <!-- Loading / Placeholder Indicator -->
+                    <div id="qr-placeholder" class="hidden text-slate-400 text-sm">
+                        <svg class="ic text-3xl mb-2 text-slate-300 block" aria-hidden="true"><use href="#i-pen-to-square"/></svg>
+                        لطفاً یک متن یا لینک وارد کنید
+                    </div>
+
+                    <!-- QR Target Container -->
+                    <div id="qrcode" class="transition-all duration-200 flex justify-center items-center"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="w-full space-y-3">
+                <button 
+                    id="download-btn" 
+                    type="button" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    <svg class="ic text-lg" aria-hidden="true"><use href="#i-download"/></svg>
+                    <span>دانلود تصویر PNG با کیفیت</span>
+                </button>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button 
+                        id="share-btn" 
+                        type="button" 
+                        class="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                        <svg class="ic text-indigo-500" aria-hidden="true"><use href="#i-share-nodes"/></svg>
+                        <span>اشتراک‌گذاری</span>
+                    </button>
+                    
+                    <button 
+                        id="copy-btn" 
+                        type="button" 
+                        class="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                        <svg class="ic text-indigo-500" aria-hidden="true"><use href="#i-copy"/></svg>
+                        <span>کپی تصویر</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-4xl w-full mx-auto text-center mt-8 text-xs text-slate-400">
+        <p>طراحی شده به‌صورت کاملاً واکنشی و بهینه‌شده برای گوشی‌های هوشمند و مرورگرهای اندروید</p>
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-2xl z-50 hidden items-center gap-2">
+        <svg id="toast-icon" class="ic text-emerald-400" aria-hidden="true"><use href="#i-circle-check"/></svg>
+        <span id="toast-message">پیام سیستم</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const qrTextInput = document.getElementById('qr-text');
+            const fgColorInput = document.getElementById('fg-color');
+            const bgColorInput = document.getElementById('bg-color');
+            const fgHexLabel = document.getElementById('fg-color-hex');
+            const bgHexLabel = document.getElementById('bg-color-hex');
+            const qrSizeInput = document.getElementById('qr-size');
+            const sizeValueLabel = document.getElementById('size-value');
+            const correctLevelInput = document.getElementById('correct-level');
+            const qrContainer = document.getElementById('qrcode');
+            const qrPlaceholder = document.getElementById('qr-placeholder');
+            const downloadBtn = document.getElementById('download-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const shareBtn = document.getElementById('share-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const charCountLabel = document.getElementById('char-count');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            let qrcodeObj = null;
+
+            // Map string levels to QRCode library constants
+            const levelMap = {
+                'L': QRCode.CorrectLevel.L,
+                'M': QRCode.CorrectLevel.M,
+                'Q': QRCode.CorrectLevel.Q,
+                'H': QRCode.CorrectLevel.H
+            };
+
+            // Format number to Persian Digits
+            function toPersianDigits(str) {
+                const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+                return str.toString().replace(/\d/g, x => persianDigits[x]);
+            }
+
+            // Show Toast Message
+            function showToast(message, isError = false) {
+                toastMessage.textContent = message;
+                const toastIcon = document.getElementById('toast-icon');
+                
+                if (isError) {
+                    toastIcon.setAttribute('class','ic text-rose-400'); toastIcon.firstElementChild.setAttribute('href','#i-circle-exclamation');
+                } else {
+                    toastIcon.setAttribute('class','ic text-emerald-400'); toastIcon.firstElementChild.setAttribute('href','#i-circle-check');
+                }
+
+                toast.classList.remove('hidden');
+                toast.classList.add('flex', 'toast-animate');
+
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('flex', 'toast-animate');
+                }, 3000);
+            }
+
+            function renderMini(id, opts) {
+                const el = document.getElementById(id);
+                el.innerHTML = '';
+                if (!opts.text) return;
+                try { new QRCode(el, Object.assign({width: 128, height: 128}, opts)); } catch (e) {}
+            }
+
+            // Update QR Code Generator
+            function generateQRCode() {
+                const text = qrTextInput.value.trim();
+                const size = parseInt(qrSizeInput.value);
+                const fgColor = fgColorInput.value;
+                const bgColor = bgColorInput.value;
+                const level = levelMap[correctLevelInput.value] || QRCode.CorrectLevel.M;
+
+                renderMini('top-base', {text, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M});
+                renderMini('top-live', {text, colorDark: fgColor, colorLight: bgColor, correctLevel: level});
+
+                // Update character counter
+                charCountLabel.textContent = `${toPersianDigits(qrTextInput.value.length)} کاراکتر`;
+
+                if (!text) {
+                    qrContainer.innerHTML = '';
+                    qrContainer.classList.add('hidden');
+                    qrPlaceholder.classList.remove('hidden');
+                    return;
+                }
+
+                qrPlaceholder.classList.add('hidden');
+                qrContainer.classList.remove('hidden');
+
+                // Visual animation feedback
+                qrContainer.classList.add('qr-updating');
+
+                // Clear existing canvas/img
+                qrContainer.innerHTML = '';
+
+                try {
+                    // Create new QR Code using qrcodejs
+                    qrcodeObj = new QRCode(qrContainer, {
+                        text: text,
+                        width: size,
+                        height: size,
+                        colorDark: fgColor,
+                        colorLight: bgColor,
+                        correctLevel: level
+                    });
+
+                    setTimeout(() => {
+                        qrContainer.classList.remove('qr-updating');
+                    }, 150);
+
+                } catch (e) {
+                    console.error("خطا در ساخت کد QR:", e);
+                    showToast("حجم متن برای این سطح تصحیح خطا بسیار زیاد است", true);
+                }
+            }
+
+            // Event Listeners for Live Updates
+            qrTextInput.addEventListener('input', generateQRCode);
+            
+            fgColorInput.addEventListener('input', (e) => {
+                fgHexLabel.textContent = e.target.value.toUpperCase();
+                generateQRCode();
+            });
+
+            bgColorInput.addEventListener('input', (e) => {
+                bgHexLabel.textContent = e.target.value.toUpperCase();
+                generateQRCode();
+            });
+
+            qrSizeInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                sizeValueLabel.textContent = `${toPersianDigits(val)} x ${toPersianDigits(val)} پیکسل`;
+                generateQRCode();
+            });
+
+            correctLevelInput.addEventListener('change', generateQRCode);
+
+            // Clear Input Text
+            clearBtn.addEventListener('click', () => {
+                qrTextInput.value = '';
+                qrTextInput.focus();
+                generateQRCode();
+            });
+
+            // Get Canvas or Data URL from generated QR
+            function getQRCanvas() {
+                return qrContainer.querySelector('canvas');
+            }
+
+            // Download PNG
+            downloadBtn.addEventListener('click', () => {
+                if (!qrTextInput.value.trim()) {
+                    showToast("لطفاً ابتدا متنی برای تولید کد وارد کنید", true);
+                    return;
+                }
+
+                const canvas = getQRCanvas();
+                if (canvas) {
+                    const imageUrl = canvas.toDataURL("image/png");
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = imageUrl;
+                    downloadLink.download = `qrcode_${Date.now()}.png`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+
+                    showToast("تصویر PNG با موفقیت دانلود شد");
+                } else {
+                    showToast("خطا در پردازش تصویر کد QR", true);
+                }
+            });
+
+            // Copy QR Image to Clipboard
+            copyBtn.addEventListener('click', async () => {
+                if (!qrTextInput.value.trim()) {
+                    showToast("متنی برای کپی وجود ندارد", true);
+                    return;
+                }
+
+                const canvas = getQRCanvas();
+                if (!canvas) return;
+
+                try {
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) {
+                            showToast("خطا در کپی تصویر", true);
+                            return;
+                        }
+                        try {
+                            const item = new ClipboardItem({ "image/png": blob });
+                            await navigator.clipboard.write([item]);
+                            showToast("تصویر کد QR در حافظه کپی شد");
+                        } catch (err) {
+                            // Fallback for browsers that don't support image clipboard
+                            showToast("مرورگر شما کپی مستقیم تصویر را پشتیبانی نمی‌کند", true);
+                        }
+                    });
+                } catch (e) {
+                    showToast("امکان کپی در این مرورگر وجود ندارد", true);
+                }
+            });
+
+            // Share API for Mobile/Android
+            shareBtn.addEventListener('click', async () => {
+                if (!qrTextInput.value.trim()) {
+                    showToast("متنی برای اشتراک‌گذاری وجود ندارد", true);
+                    return;
+                }
+
+                const canvas = getQRCanvas();
+                if (!canvas) return;
+
+                canvas.toBlob(async (blob) => {
+                    if (!blob) return;
+
+                    const file = new File([blob], "qrcode.png", { type: "image/png" });
+
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                title: 'کد QR تولید شده',
+                                text: 'کد QR من را مشاهده کنید:',
+                                files: [file]
+                            });
+                        } catch (err) {
+                            if (err.name !== 'AbortError') {
+                                showToast("خطا در اشتراک‌گذاری فایل", true);
+                            }
+                        }
+                    } else if (navigator.share) {
+                        // Fallback sharing text if file share not supported
+                        try {
+                            await navigator.share({
+                                title: 'کد QR',
+                                text: qrTextInput.value.trim()
+                            });
+                        } catch (err) {
+                            if (err.name !== 'AbortError') {
+                                showToast("امکان اشتراک‌گذاری وجود ندارد", true);
+                            }
+                        }
+                    } else {
+                        showToast("قابلیت اشتراک‌گذاری در این مرورگر پشتیبانی نمی‌شود", true);
+                    }
+                });
+            });
+
+            // Initial Generation on page load
+            generateQRCode();
+        });
+    </script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
